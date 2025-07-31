@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historial Académico - UNMSM</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --blue-dark: #3a80f7;
+      --blue-light: rgba(58,128,247,0.1);
+      --bg: #e6f2ff;
+      --card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 8px 30px -5px rgba(0,0,0,0.08);
+      font-family: 'Roboto', sans-serif;
+    }
+    * { box-sizing:border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #1f2d3a;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 230px;
+      height: 100vh;
+      background: #1f2d44;
+      color: white;
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow: auto;
+    }
+    .sidebar img {
+      width: 100%;
+      padding: 0 10px;
+      margin-bottom: 5px;
+      object-fit: contain;
+    }
+    .nav-list {
+      flex:1;
+      padding: 0;
+      margin: 0;
+      list-style:none;
+    }
+    .nav-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      cursor: pointer;
+      border-radius: 8px;
+      margin: 4px 0;
+      transition: background .2s;
+    }
+    .nav-list li:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .nav-list li i {
+      min-width: 20px;
+      text-align:center;
+      font-size: 0.9em;
+    }
+
+    .main {
+      margin-left: 250px;
+      padding: 1.5rem 2rem 3rem;
+      min-height: 100vh;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.9rem;
+      font-weight: 700;
+    }
+    .page-title small {
+      font-size: 0.8rem;
+      color: #6b7089;
+      margin-left: 4px;
+    }
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: white;
+      padding: 8px 14px;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px -5px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+    }
+    .user-info div {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .user-info span {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .user-info i {
+      color: #555;
+    }
+    .btn-logout {
+      display: flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      background: rgba(0,0,0,0.04);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight:500;
+      box-shadow: 0 4px 15px -5px rgba(0,0,0,0.1);
+    }
+
+    .cards-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .card h2, .card h3 {
+      margin: 0;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    .card .section-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.85rem;
+      align-items: center;
+    }
+    .label {
+      color: #5f5f9a;
+      font-weight: 500;
+      flex:1;
+    }
+    .value {
+      background: #117864;
+      padding: 1px 5px;
+      border-radius: 20px;
+      font-weight: 700;
+      min-width: 60px;
+      text-align: center;
+      display: inline-block;
+      color: #117864;
+      position: relative;
+    }
+    .value.big {
+      background-color: rgba(28, 172, 129, 0.25);
+      color: #117864;
+font-weight: 800;
+padding: 1px 10px;
+    border-radius: 4px;
+    }
+
+    .chart-container {
+      flex:1;
+      position: relative;
+    }
+
+    .download {
+      background: #d32f2f;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .download i {
+      margin-right: 4px;
+    }
+
+    .table-section {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1rem 1rem 1.25rem;
+      box-shadow: var(--shadow);
+      margin-top: 0.5rem;
+    }
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 1000px;
+    }
+    thead tr {
+      background: #f5f7fa;
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: center;
+      border: 1px solid #e1e8f5;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+    tbody tr:nth-child(even) {
+      background: #fafcff;
+    }
+    .period-row td {
+      background: #dcefff;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--blue-light);
+      color: #0000FF;
+      font-weight: 700;
+      position: relative;
+      min-width: 20px;
+      text-shadow: 0 0 4px rgba(15,63,161,0.5); /* refuerza el número sin cambiar fondo */
+  box-shadow: 0 6px 18px -4px rgba(58,128,247,0.25);
+    }
+    .grade-badge.small {
+      padding: 4px 10px;
+    }
+    @media (max-width: 1000px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div style="padding:0 12px;">
+      <img src="2.jpg" alt="Logo SUM">
+    </div>
+    <ul class="nav-list">
+      <li><i class="fas fa-house"></i>Inicio</li>
+      <li><i class="fas fa-user"></i>Mi Información</li>
+      <li><i class="fas fa-edit"></i>Matrícula</li>
+      <li><i class="fas fa-chart-bar"></i>Reportes</li>
+      <li><i class="fas fa-calendar-check"></i>Mis Asistencias</li>
+      <li><i class="fas fa-chalkboard-teacher"></i>Mi Tutoría</li>
+      <li><i class="fas fa-book"></i>Plan de Estudios</li>
+      <li><i class="fas fa-question-circle"></i>Manuales y Tutoriales</li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <!-- Encabezado -->
+    <div class="topbar">
+      <div class="page-title">
+        Historial Académico
+      </div>
+      <div class="user-block">
+        <div class="user-info">
+          <div><i class="fas fa-clock"></i><span id="timer">00:15:00</span></div>
+          <div><i class="fas fa-user"></i><span>HUALLPACUNA CRUZ, FARID WALTER</span></div>
+        </div>
+        <div class="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</div>
+      </div>
+    </div>
+
+    <!-- Tarjetas: resumen + gráfico -->
+    <div class="cards-wrapper">
+      <div class="card">
+        <div class="section-title">Resumen del Historial Académico</div>
+        <div class="two-column">
+          <div>
+            <div class="summary-line">
+              <span class="label">Creditaje Requerido para Egresar:</span>
+              <span class="value big">227</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">Creditaje Aprobado:</span>
+              <span class="value big">166</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Obligatorios:</span>
+              <span class="value big">153</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- De Especialidad:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Electivos Generales:</span>
+              <span class="value big">13</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Electivos de Especialidad:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Optativos:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Alternativos:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- De otra Especialidad:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Más de una vez:</span>
+              <span class="value big">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">- Otros:</span>
+              <span class="value big">0</span>
+            </div>
+          </div>
+          <div>
+            <div class="summary-line">
+              <span class="label">Creditaje Faltante:</span>
+              <span class="value big">61</span>
+            </div>
+            <div class="summary-line">
+              <span class="label">Promedio Ponderado:</span>
+              <span class="value big">15.078</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Gráfico de comparación entre Periodo Académico y Promedio</div>
+        <div class="chart-container">
+          <canvas id="lineChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-section">
+      <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap:10px; margin-bottom:10px;">
+        <div><button class="download"><i class="fas fa-file-pdf"></i> Descargar</button></div>
+        <div>
+          <label style="margin-right:6px;">Búsqueda:</label>
+          <input type="text" placeholder="Buscar..." style="padding:6px 10px; border-radius:6px; border:1px solid #cfdcec; min-width:180px;">
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Ciclo</th>
+              <th>Plan</th>
+              <th>Tipo</th>
+              <th>Asignatura</th>
+              <th>Calificación</th>
+              <th>Créditos</th>
+              <th>Sección</th>
+              <th>Acta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2022-1</td>
+            </tr>
+            <tr>
+              <td>1</td><td>2018</td><td>E</td><td>INE002 - PROGRAMACIÓN Y COMPUTACIÓN</td><td><span class="grade-badge">17</span></td><td>2</td><td>1</td><td>P-20221732018INE0021P</td>
+            </tr>
+            <tr>
+              <td>1</td><td>2018</td><td>E</td><td>INE006 - CÁLCULOS BÁSICOS EN QUÍMICA</td><td><span class="grade-badge">18</span></td><td>2</td><td>1</td><td>P-20221732018INE0061P</td>
+            </tr>
+            <tr>
+              <td>1</td><td>2018</td><td>O</td><td>INO101 - REDACCIÓN Y TÉCNICAS DE COMUNICACIÓN EFECTIVA I</td><td><span class="grade-badge">14</span></td><td>3</td><td>1</td><td>P-202217320180INO1011P</td>
+            </tr>
+<tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO102 - MÉTODOS DE ESTUDIO UNIVERSITARIO</td><td><span class="grade-badge">18</span></td><td>2</td><td>1</td><td>P-20221732018INE0021P</td>
+          </tr>
+ <tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO103 - DESARROLLO PERSONAL Y LIDERAZGO</td><td><span class="grade-badge">18</span></td><td>2</td><td>1</td><td>P-202217320180INO1031P</td>
+          </tr>
+ <tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO104 - CÁLCULO I</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202217320180INO1041P</td>
+          </tr>
+ <tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO105 - BIOLOGÍA PARA CIENCIAS E INGENIERÍA</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202217320180INO1051P</td>
+          </tr>
+ <tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO106 - ÁLGEBRA Y GEOMETRÍA ANALÍTICA</td><td><span class="grade-badge">19</span></td><td>4</td><td>1</td><td>P-202217320180INO1061P</td>
+          </tr>
+ <tr>
+            <td>1</td><td>2018</td><td>O</td><td>INO107 - MEDIO AMBIENTE Y DESARROLLO SOSTENIBLE</td><td><span class="grade-badge">16</span></td><td>3</td><td>1</td><td>P - 202217320180INO1071P</td>
+          </tr>
+
+           
+            <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2022-2</td>
+            </tr>
+            <tr>
+              <td>2</td><td>2018</td><td>O</td><td>INO201 - REDACCIÓN Y TÉCNICAS DE COMUNICACIÓN EFECTIVA II</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202227320180INO2011P</td>
+            </tr>
+<tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO202 - INVESTIGACIÓN FORMATIVA</td><td><span class="grade-badge">18</span></td><td>3</td><td>1</td><td>P-202227320180INO2021P</td>
+ <tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO203 - REALIDAD NACIONAL Y MUNDIAL</td><td><span class="grade-badge">18</span></td><td>2</td><td>1</td><td>P-202227320180INO2031P</td>
+          </tr>
+ <tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO204 - CÁLCULO II</td><td><span class="grade-badge">19</span></td><td>4</td><td>2</td><td>P-202227320180INO2042P</td>
+          </tr>
+ <tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO205 - FÍSICA I</td><td><span class="grade-badge">18</span></td><td>4</td><td>1</td><td>P-202227320180INO2051P</td>
+          </tr>
+ <tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO206 - QUÍMICA GENERAL</td><td><span class="grade-badge">17</span></td><td>4</td><td>2</td><td>P-202227320180INO2062P</td>
+          </tr>
+ <tr>
+            <td>2</td><td>2018</td><td>O</td><td>INO207 - INTRODUCCIÓN A LAS CIENCIAS E INGENIERÍA</td><td><span class="grade-badge">15</span></td><td>2</td><td>2</td><td>P-202227320180INO2072P</td>
+          </tr>
+ <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2023-1</td>
+            </tr>
+<tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO031 - AGROINDUSTRIAS</td><td><span class="grade-badge">13</span></td><td>3</td><td>1</td><td>P-202317320180IAO0311P</td>
+          </tr>
+          <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO032 - AGROTECNIA GENERAL</td><td><span class="grade-badge">13</span></td><td>3</td><td>1</td><td>P-202317320180IAO0321P</td>
+ <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO033 - CÁLCULO III</td><td><span class="grade-badge">12</span></td><td>3</td><td>1</td><td>P-202317320180IAO0331P</td>
+          </tr>
+ <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO034 - CIRCUITOS Y MÁQUINAS ELÉCTRICAS</td><td><span class="grade-badge">18</span></td><td>3</td><td>1</td><td>P-202317320180IAO0341P</td>
+          </tr>
+ <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO035 - QUÍMICA ANALÍTICA</td><td><span class="grade-badge">14</span></td><td>3</td><td>1</td><td>P-202317320180IAO0351P</td>
+          </tr>
+ <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO036 - QUÍMICA ORGÁNICA</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202317320180IAO0361P</td>
+          </tr>
+ <tr>
+            <td>3</td><td>2018</td><td>O</td><td>IAO037 - RECURSOS HIDROBIOLÓGICOS</td><td><span class="grade-badge">11</span></td><td>3</td><td>1</td><td>P-202317320180IAO0371P</td>
+          </tr>
+ <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2023-2</td>
+            </tr>
+           <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO041 - BIOQUÍMICA GENERAL</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202327320180IAO0411P</td>
+          </tr>
+          <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO042 - CONTABILIDAD</td><td><span class="grade-badge">14</span></td><td>3</td><td>1</td><td>P-202327320180IAO0421P</td>
+ </tr>
+ <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO043 - ESTADÍSTICA GENERAL</td><td><span class="grade-badge">15</span></td><td>4</td><td>1</td><td>P-202317320180IAO0371P</td>
+          </tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO044 - FISICOQUÍMICA GENERAL</td><td><span class="grade-badge">16</span></td><td>3</td><td>1</td><td>P-202327320180IAO0441P</td>
+          </tr>
+ <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO045 - MECÁNICA GENERAL</td><td><span class="grade-badge">19</span></td><td>3</td><td>1</td><td>P-202327320180IAO0451P</td>
+          </tr>
+ <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO046 - QUÍMICA AGROINDUSTRIAL</td><td><span class="grade-badge">13</span></td><td>4</td><td>2</td><td>P-202327320180IAO0462P</td>
+          </tr>
+ <tr>
+            <td>4</td><td>2018</td><td>O</td><td>IAO052 - MÉTODOS NUMÉRICOS PARA LA INGENIERÍA</td><td><span class="grade-badge">15</span></td><td>4</td><td>2</td><td>P-202327320180IAO0522P</td>
+          </tr>
+ <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2024-1</td>
+            </tr>
+ <tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO051 - ANÁLISIS DE PRODUCTOS AGROINDUSTRIALES</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202407320180IAO0511P</td>
+          </tr>
+<tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO053 - MICROBIOLOGÍA GENERAL</td><td><span class="grade-badge">14</span></td><td>4</td><td>1</td><td>P-202427320180IAO0531P</td>
+          </tr>
+          <tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO054 - PROPIEDADES FÍSICAS DE LOS MATERIALES AGROINDUSTRIALES</td><td><span class="grade-badge">20</span></td><td>3</td><td>1</td><td>P-202417320180IAO0541P</td>
+ </tr> 
+<tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO055 - TECNOLOGÍA POST-COSECHA</td><td><span class="grade-badge">11</span></td><td>3</td><td>1</td><td>P-202327320180IAO0522P</td>
+          </tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO056 - TERMODINÁMICA</td><td><span class="grade-badge">14</span></td><td>4</td><td>1</td><td>P-202417320180IAO0561P</td>
+          </tr> 
+<tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO057 - ZOOTECNIA GENERAL</td><td><span class="grade-badge">12</span></td><td>3</td><td>1</td><td>P-202317320180IAO0371P</td>
+          </tr>
+ <tr>
+            <td>5</td><td>2018</td><td>O</td><td>IAO058 - INGLÉS TÉCNICO I</td><td><span class="grade-badge">16</span></td><td>3</td><td>2</td><td>P-202417320180IAO0582P</td>
+          </tr>
+ <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2024-2</td>
+            </tr>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO061 - ANÁLISIS DE COSTOS</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202427320180IAO0611P</td>
+          </tr>
+          <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO062 - MÁQUINAS Y EQUIPOS AGROINDUSTRIALES</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202427320180IAO0621P</td>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO063 - MÉTODOS ESTADÍSTICOS PARA LA INVESTIGACIÓN</td><td><span class="grade-badge">16</span></td><td>4</td><td>1</td><td>P-202427320180IAO0631P</td>
+          </tr>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO064 - MICROBIOLOGÍA DE LOS ALIMENTOS</td><td><span class="grade-badge">12</span></td><td>4</td><td>1</td><td>P-202417320180IAO0582P</td>
+          </tr>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO065 - OPERACIONES UNITARIAS AGROINDUSTRIALES 1</td><td><span class="grade-badge">15</span></td><td>4</td><td>1</td><td>P-202427320180IAO0531P</td>
+          </tr>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO066 - TECNOLOGÍA POST-BENEFICIO</td><td><span class="grade-badge">11</span></td><td>3</td><td>1</td><td>P-202327320180IAO0522P</td>
+          </tr>
+ <tr>
+            <td>6</td><td>2018</td><td>O</td><td>IAO067 - INGLÉS TÉCNICO II</td><td><span class="grade-badge">12</span></td><td>3</td><td>1</td><td>P-202317320180IAO0371P</td>
+          </tr>
+ <tr class="period-row">
+              <td colspan="8"style="background: rgba(101, 88, 211, 0.15); color: rgb(101, 88, 211); font-weight: bolder; text-align: center; padding: 8px;">PERIODO ACADÉMICO 2025-1</td>
+            </tr>
+<tr>
+            <td>7</td><td>2018</td><td>O</td><td>IAO071 - GESTIÓN DE SISTEMAS DE LA CALIDAD</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202427320180IAO0611P</td>
+          </tr>
+          <tr>
+            <td>7</td><td>2018</td><td>O</td><td>IAO072 - MERCADOTECNIA</td><td><span class="grade-badge">17</span></td><td>3</td><td>2</td><td>P-202427320180IAO0621P</td>
+ <tr>
+            <td>7</td><td>2018</td><td>O</td><td>IAO073 - OPERACIONES UNITARIAS AGROINDUSTRIALES II</td><td><span class="grade-badge">15</span></td><td>4</td><td>1</td><td>P-202517320180IAO0731P</td>
+          </tr>
+ <tr>
+            <td>7</td><td>2018</td><td>O</td><td>IAO074 - TECNOLOGÍA AGROINDUSTRIAL I</td><td><span class="grade-badge">14</span></td><td>4</td><td>1</td><td>P-202417320180IAO0582P</td>
+          </tr>
+ <tr>
+            <td>7</td><td>2018</td><td>E</td><td>IAO1114 - PROCESAMIENTO DE CULTIVOS AGROINDUSTRIALES</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202517320180IAO11141P</td>
+          </tr>
+ <tr>
+            <td>7</td><td>2018</td><td>E</td><td>IAO1117 - PROCESAMIENTO DE GRANOS</td><td><span class="grade-badge">15</span></td><td>3</td><td>1</td><td>P-202517320180IAO11171P</td>
+          </tr>
+ <tr>
+            <td>7</td><td>2018</td><td>E</td><td>IAO1118 - QUÍMICA INSTRUMENTAL</td><td><span class="grade-badge">17</span></td><td>3</td><td>1</td><td>P-202517320180IAO11181P</td>
+          </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+ <script>
+  const format3 = (v) => Number(v).toFixed(3);
+
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['2022-1', '2022-2', '2023-1', '2023-2', '2024-1', '2024-2', '2025-1'],
+      datasets: [{
+        label: 'Promedio Semestre',
+        data: [16.769, 17.318, 13.955, 13.957, 16.412, 15.267, 15.645],
+        borderColor: '#3a80f7',
+        backgroundColor: 'rgba(58,128,247,0.1)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 6,
+        pointBackgroundColor: '#3a80f7',
+        pointBorderWidth: 0,
+        hoverRadius: 8,
+        spanGaps: true
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              return `Promedio: ${format3(v)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          suggestedMin: 12,
+          suggestedMax: 18,
+          ticks: {
+            callback: (v) => format3(v),
+            stepSize: 1
+          },
+          title: {
+            display: true,
+            text: 'Promedios',
+            font: { weight: '600' }
+          },
+          grid: { drawBorder: false }
+        },
+        x: {
+          grid: { display: false },
+          title: {
+            display: true,
+            text: 'Periodos',
+            font: { weight: '600' }
+          }
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        intersect: false
+      },
+      maintainAspectRatio: false
+    }
+  });
+
+  // Timer hh:mm:ss
+  let totalSeconds = 15 * 60;
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function updateTimer() {
+    const timerEl = document.getElementById('timer');
+    let hrs = Math.floor(totalSeconds / 3600);
+    let mins = Math.floor((totalSeconds % 3600) / 60);
+    let secs = totalSeconds % 60;
+    timerEl.textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+    if (totalSeconds > 0) totalSeconds--;
+  }
+  updateTimer();
+  setInterval(updateTimer, 1000);
+</script>
+
+
+</body>
+</html>
