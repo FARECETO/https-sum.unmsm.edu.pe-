@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema SUM - UNMSM</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- PANTALLA DE LOGIN (contenido lo pinta login.js) -->
+  <!-- ============================================ -->
+  <div id="loginScreen"></div>
+
+  <!-- ============================================ -->
+  <!-- APP: se muestra recién después de iniciar sesión -->
+  <!-- ============================================ -->
+  <div id="appScreen" class="oculto">
+
+    <div class="sidebar">
+      <div style="padding:0 12px;">
+        <img src="2.jpg" alt="Logo SUM" onerror="this.style.display='none'">
+      </div>
+      <!-- El listado de ítems lo pinta js/sidebar.js -->
+      <ul class="nav-list" id="navList"></ul>
+    </div>
+
+    <div class="main">
+
+      <div class="topbar">
+        <div class="page-title" id="pageTitleDisplay">Inicio</div>
+        <div class="user-block">
+          <div class="user-info">
+            <div><i class="fas fa-clock"></i><span id="timer">00:15:00</span></div>
+            <div><i class="fas fa-user"></i><span id="userNameDisplay">HUALLPACUNA CRUZ, FARID WALTER</span></div>
+          </div>
+          <div class="btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Salir</div>
+        </div>
+      </div>
+
+      <!-- Cada uno de estos contenedores es llenado por su propio archivo js/sections/*.js -->
+      <div id="inicio" class="content-section active"></div>
+      <div id="info" class="content-section"></div>
+      <div id="matricula" class="content-section"></div>
+      <div id="reportes" class="content-section"></div>
+      <div id="asistencia" class="content-section"></div>
+      <div id="tutoria" class="content-section"></div>
+      <div id="plan" class="content-section"></div>
+      <div id="manuales" class="content-section"></div>
+
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SCRIPTS: cada ítem del menú tiene su propio archivo -->
+  <!-- ============================================ -->
+  <script src="js/login.js"></script>
+  <script src="js/sidebar.js"></script>
+
+  <script src="js/sections/inicio.js"></script>
+  <script src="js/sections/mi-informacion.js"></script>
+  <script src="js/sections/matricula.js"></script>
+  <script src="js/sections/reportes.js"></script>
+  <script src="js/sections/mis-asistencias.js"></script>
+  <script src="js/sections/mi-tutoria.js"></script>
+  <script src="js/sections/plan-de-estudios.js"></script>
+  <script src="js/sections/manuales.js"></script>
+
+  <!-- script.js va al final: usa lo definido por todos los anteriores -->
+  <script src="js/script.js"></script>
+
+</body>
+</html>
