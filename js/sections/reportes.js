@@ -64,7 +64,7 @@
             <div>
               <div class="summary-line">
                 <span class="label">Creditaje Faltante:</span>
-                <span class="value big">42</span>
+                <span class="value big">24</span>
               </div>
               <div class="summary-line">
                 <span class="label">Promedio Ponderado:</span>
